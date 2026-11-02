@@ -16,4 +16,6 @@ test: build
 	./tests/run_tests.sh "$(IMAGE):$(TAG)"
 
 run: build
-	docker run --rm -it -p 8081:8081 $(IMAGE):$(TAG)
+	docker run --rm -it \
+		-p 53:53 -p 53:53/udp -p 8081:8081 \
+		$(IMAGE):$(TAG)

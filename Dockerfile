@@ -12,7 +12,11 @@ LABEL \
   org.label-schema.vcs-ref="${VERSION}" \
   org.label-schema.schema-version="1.0"
 
-### Install PowerDNS
+ENV \
+  PDNS_API_URL="" \
+  PDNS_API_KEY=""
+
+### Install Dependencies
 RUN \
   apk add --no-cache \
     mariadb-client \
@@ -25,6 +29,9 @@ RUN \
 
 ### Add Files
 ADD --chmod=755 /content/etc/s6-overlay /etc/s6-overlay
+
+### Services
+ADD --chmod=755 /content/etc/s6-overlay/s6-rc.d /etc/s6-rc.d
 
 # Default DNS ports
 EXPOSE 53/udp

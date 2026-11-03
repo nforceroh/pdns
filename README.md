@@ -44,9 +44,25 @@ s6-overlay runs one longrun, dependent on the base's `user` init:
 | `BUILD_DATE` | `now` | label metadata |
 | `VERSION` | `unknown` | label metadata; CI passes the build date |
 
-There are no runtime `ENV` tunables: PowerDNS reads its configuration from
-`/etc/pdns/pdns.conf` (override via a bind mount or an inheriting image), and
-database credentials belong to the backend configuration, not the image.
+The Dockerfile declares `PDNS_API_URL` and `PDNS_API_KEY` as empty defaults,
+but the bundled PowerDNS service and configuration do not consume them. They
+do not configure or enable the PowerDNS API. Configure PowerDNS through
+`/etc/pdns/pdns.conf` (or an override/mount), including any API settings and
+database credentials required by your deployment.
+
+The image does not declare a configuration volume. Mount the configuration
+file read-only if you want to supply a deployment-specific configuration:
+
+```sh
+docker run -d --name pdns \
+  --restart unless-stopped \
+  -p 53:53/tcp -p 53:53/udp -p 8081:8081/tcp \
+  -v "$PWD/pdns.conf:/etc/pdns/pdns.conf:ro" \
+  ghcr.io/nforceroh/pdns:latest
+```
+
+The example publishes the PowerDNS webserver port as well as DNS; restrict
+port `8081` to trusted management clients and enable/configure it deliberately.
 
 ## Local development
 
@@ -56,8 +72,11 @@ make test    # build, then run tests/run_tests.sh
 make run     # run with 53 (tcp+udp) and 8081 published
 ```
 
+For a working authoritative DNS service, supply a valid PowerDNS configuration
+with a backend and zone data. The local `make run` target only publishes ports;
+it does not configure a DNS backend or create zones.
+
 CI is the only publisher — see
 [nforceroh/.github](https://github.com/nforceroh/.github) for the shared build and
 cleanup workflows. Published tags: `3.24` (stable pin), `latest`, `main`, date and sha
 tags.
-

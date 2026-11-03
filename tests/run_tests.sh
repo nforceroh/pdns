@@ -58,8 +58,29 @@ check "s6 service database is populated" \
 	in_image sh -c '[ -d /etc/s6-overlay/s6-rc.d ] && [ -n "$(ls -A /etc/s6-overlay/s6-rc.d)" ]'
 
 # --- static filesystem checks (need no external services) -------------------
-
-
+check "label-schema maintainer label present" \
+	docker image inspect -f '{{index .Config.Labels "org.label-schema.maintainer"}}' "$IMAGE"
+check "label-schema build-date label present" \
+	docker image inspect -f '{{index .Config.Labels "org.label-schema.build-date"}}' "$IMAGE"
+check "label-schema version label present" \
+	docker image inspect -f '{{index .Config.Labels "org.label-schema.version"}}' "$IMAGE"
+check "label-schema vcs-url label present" \
+	docker image inspect -f '{{index .Config.Labels "org.label-schema.vcs-url"}}' "$IMAGE"
+check "label-schema vcs-ref label present" \
+	docker image inspect -f '{{index .Config.Labels "org.label-schema.vcs-ref"}}' "$IMAGE"
+check "label-schema schema-version label present" \
+	docker image inspect -f '{{index .Config.Labels "org.label-schema.schema-version"}}' "$IMAGE"
+check "pdns_server binary present" in_image 'command -v pdns_server'
+check "pdns MySQL backend module present" \
+	in_image 'test -f /usr/lib/pdns/pdns/libgmysqlbackend.so'
+check "s6 powerdns service run script present" \
+	in_image 'test -x /etc/s6-overlay/s6-rc.d/powerdns/run'
+check "s6 powerdns service type is longrun" \
+	in_image 'grep -qx longrun /etc/s6-overlay/s6-rc.d/powerdns/type'
+check "s6 powerdns service wired into user2 bundle" \
+	in_image 'test -f /etc/s6-overlay/s6-rc.d/user2/contents.d/powerdns'
+check "s6 powerdns service depends on user init" \
+	in_image 'test -f /etc/s6-overlay/s6-rc.d/powerdns/dependencies.d/user'
 # --- boot check -------------------------------------------------------------
 # Leaf images need external services (databases, rspamd, ...) to settle, so
 # still running after the settle window counts as success. A crash does not.

@@ -5,16 +5,25 @@ ARG \
   VERSION=unknown
 
 LABEL \
-  maintainer="Sylvain Martin (sylvain@nforcer.com)"
+  org.label-schema.maintainer="Sylvain Martin (sylvain@nforcer.com)" \
+  org.label-schema.build-date="${BUILD_DATE}" \
+  org.label-schema.version="${VERSION}" \
+  org.label-schema.vcs-url="https://github.com/nforceroh/pdns" \
+  org.label-schema.vcs-ref="${VERSION}" \
+  org.label-schema.schema-version="1.0"
 
-RUN apk add --no-cache \
+### Install PowerDNS
+RUN \
+  apk add --no-cache \
     mariadb-client \
     pdns \
     pdns-backend-mysql \
     pdns-doc \
     py3-pip \
-    python3
+    python3 \
+  && rm -rf /var/cache/apk/*
 
+### Add Files
 ADD --chmod=755 /content/etc/s6-overlay /etc/s6-overlay
 
 # Default DNS ports
